@@ -78,7 +78,7 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "自动focus~~~~~~~~~~~~~~");
 //                mPreview.autofocus():
                 mPreview.autoTackPicture=true;
-                mPreview.handleFocusMetering(null,mPreview.mCamera,100,100);
+                mPreview.handleFocusMetering(null,mPreview.mCamera,250,450);
             }
         }, i * 1000);
     }

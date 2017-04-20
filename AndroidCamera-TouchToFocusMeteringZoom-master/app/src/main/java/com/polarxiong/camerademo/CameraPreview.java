@@ -56,18 +56,20 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
                     Log.d(TAG, "Error creating media file, check storage permissions");
                     return;
                 }
+
+
                 try {
                     FileOutputStream fos = new FileOutputStream(pictureFile);
                     fos.write(data);
                     fos.close();
 
                     view.setImageURI(outputMediaFileUri);
-                    camera.startPreview();
 
                     //数字認識
                     if (activity!=null){
                         activity.ImageIndentification();
                     }
+                    camera.startPreview();
 
                 } catch (FileNotFoundException e) {
                     Log.d(TAG, "File not found: " + e.getMessage());
