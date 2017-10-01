@@ -26,15 +26,25 @@ import com.technoalliance.taocrexample.R;
  * Created by zhantong on 16/4/28.
  */
 public class Demo1MainActivity extends Activity {
+    //数字识别库
     private ImageIdenti imageIndety = new ImageIdenti();
+    //相机视图
     private CameraPreview mPreview;
+    static final int REQUEST_CODE = 1;
+    //是否自动拍照
+    boolean flg_auto_picture_capture = true;
+
+
     private static final String TAG = "M Permission";
     private int REQUEST_CODE_CAMERA_PERMISSION = 0x01;
     private int REQUEST_CODE_other_PERMISSION = 2;
+    TextView txt_info ;
+
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.w(TAG, "~~(demo1 activaty)~~  onCreate~~~~~~~~~~~~~~");
         setContentView(R.layout.demo1_activity_main);
 
         // パーミッションを持っているか確認する
@@ -61,10 +71,6 @@ public class Demo1MainActivity extends Activity {
         txt_info.setText("5秒後画像を自動撮る");
         autofocusaftertime(5);
     }
-    static final int REQUEST_CODE = 1;
-
-
-    boolean flg_auto_picture_capture = true;
 
     //起動したら、画像を自動取る
     void autofocusaftertime(int i){
@@ -72,8 +78,7 @@ public class Demo1MainActivity extends Activity {
             public void run() {
                 Log.d(TAG, "自动focus~~~~~~~~~~~~~~");
 //                mPreview.autofocus():
-                mPreview.autoTackPicture=true;
-                mPreview.handleFocusMetering(null,mPreview.mCamera,250,450);
+                takeCapture();
             }
         }, i * 1000);
     }
@@ -89,12 +94,20 @@ public class Demo1MainActivity extends Activity {
             autofocusaftertime(1);
         }
     }
+    //照相
+    void takeCapture(){
+        Log.d(TAG, "照相~~~~~~~~~~~~~~");
+        if (mPreview!=null && flg_auto_picture_capture) {
+            mPreview.autoTackPicture = true;
+            mPreview.handleFocusMetering(null, mPreview.mCamera, 200, 400);
+        }
+    }
+    //停止自动照相
     void stopAutoCapture(){
         flg_auto_picture_capture=false;
         mPreview.autoTackPicture=true;
         txt_info.setText("停止");
     }
-    TextView txt_info ;
 
     void initUI(){
         final ImageView mediaPreview = (ImageView) findViewById(R.id.media_preview);
@@ -168,14 +181,15 @@ public class Demo1MainActivity extends Activity {
     }
     FrameLayout preview;
     private void initCamera() {
-        mPreview = new CameraPreview(this);
-        preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(mPreview);
+            mPreview = new CameraPreview(this);
+            preview = (FrameLayout) findViewById(R.id.camera_preview);
+            preview.addView(mPreview);
+
+
 
         final ImageView mediaPreview = (ImageView) findViewById(R.id.media_preview);
         mPreview.pictureImageView = mediaPreview;
         mPreview.activity = this;
-
 
         SettingsFragment.passCamera(mPreview.getCameraInstance());
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
@@ -183,17 +197,37 @@ public class Demo1MainActivity extends Activity {
         SettingsFragment.init(PreferenceManager.getDefaultSharedPreferences(this));
     }
 
+    //退出
     public void onPause() {
         super.onPause();
+        Log.w(TAG, "~~(demo1 activaty)~~  onPause~~~~~~~~~~~~~~");
+        stopAutoCapture();
         mPreview = null;
     }
-
+    //重新开始
     public void onResume() {
         super.onResume();
+        Log.w(TAG, "~~(demo1 activaty)~~  onResume~~~~~~~~~~~~~~");
         if (mPreview == null) {
             initCamera();
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // Permission handling for Android 6.0

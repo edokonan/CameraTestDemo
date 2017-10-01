@@ -40,12 +40,14 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private SurfaceHolder mHolder;
     public Camera mCamera;
     private MediaRecorder mMediaRecorder;
+    //拍照文件保存地址
     private Uri outputMediaFileUri;
     private String outputMediaFileType;
     private float oldDist = 1f;
+    //实时视图
     public ImageView pictureImageView;
     public  Demo1MainActivity activity;
-
+    public Bitmap bitmap;
 
     public void takePicture(final ImageView view) {
         mCamera.takePicture(null, null, new Camera.PictureCallback() {
@@ -53,29 +55,38 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
             public void onPictureTaken(byte[] data, Camera camera) {
                 File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
                 if (pictureFile == null) {
-                    Log.d(TAG, "Error creating media file, check storage permissions");
+                    Log.e(TAG, "Error creating media file, check storage permissions");
                     return;
                 }
-
-
                 try {
-                    FileOutputStream fos = new FileOutputStream(pictureFile);
-                    fos.write(data);
-                    fos.close();
-
-                    view.setImageURI(outputMediaFileUri);
-
+                    bitmap=BitmapTools.toBitmap(data);
+                    view.setImageBitmap(bitmap);
                     //数字認識
                     if (activity!=null){
                         activity.ImageIndentification();
                     }
                     camera.startPreview();
-
-                } catch (FileNotFoundException e) {
-                    Log.d(TAG, "File not found: " + e.getMessage());
-                } catch (IOException e) {
-                    Log.d(TAG, "Error accessing file: " + e.getMessage());
+                } catch (Exception e) {
+                    Log.e(TAG, "Error accessing file: " + e.getMessage());
                 }
+//                try {
+//                    FileOutputStream fos = new FileOutputStream(pictureFile);
+//                    fos.write(data);
+//                    fos.close();
+//                    view.setImageURI(outputMediaFileUri);
+//                    Log.w(TAG, "File save at: ");
+//                    Log.w(TAG, outputMediaFileUri.getPath());
+//
+//                    //数字認識
+//                    if (activity!=null){
+//                        activity.ImageIndentification();
+//                    }
+//                    camera.startPreview();
+//                } catch (FileNotFoundException e) {
+//                    Log.d(TAG, "File not found: " + e.getMessage());
+//                } catch (IOException e) {
+//                    Log.d(TAG, "Error accessing file: " + e.getMessage());
+//                }
             }
         });
     }
@@ -290,6 +301,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
 
     public boolean onTouchEvent(MotionEvent event) {
+
+
+        Log.w(TAG, "onTouchEvent(MotionEvent event)");
+        Log.w(TAG, event.toString());
+
         if (event.getPointerCount() == 1) {
             handleFocusMetering(event, mCamera,0,0);
         } else {
@@ -355,28 +371,40 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         if(event!=null){
             focusRect = calculateTapArea(event.getX(), event.getY(), 0.5f, previewSize);
             meteringRect = calculateTapArea(event.getX(), event.getY(), 1.5f, previewSize);
-            Log.i(TAG, "x" +event.getX());
-            Log.i(TAG, "x" +event.getY());
+            Log.w(TAG, "focusRect:" +focusRect);
+            Log.w(TAG, "meteringRect" +meteringRect);
+            Log.w(TAG, "x" +event.getX());
+            Log.w(TAG, "y" +event.getY());
         }else{
             focusRect = calculateTapArea(fX, fY, 0.5f, previewSize);
             meteringRect = calculateTapArea(fX, fY, 1.5f, previewSize);
-            Log.i(TAG, "x" + fX);
-            Log.i(TAG, "x" + fY);
+            Log.w(TAG, "focusRect:" +focusRect);
+            Log.w(TAG, "meteringRect" +meteringRect);
+            Log.w(TAG, "x" + fX);
+            Log.w(TAG, "y" + fY);
         }
 
         camera.cancelAutoFocus();
-
+        //
+        Rect newrect = new Rect(-100, -100, 100, 100);
+        Camera.Area temparea = new Camera.Area(newrect, 1);
         if (params.getMaxNumFocusAreas() > 0) {
             List<Camera.Area> focusAreas = new ArrayList<>();
-            focusAreas.add(new Camera.Area(focusRect, 800));
+//            Camera.Area temparea = new Camera.Area(focusRect, 800);
+            focusAreas.add(temparea);
             params.setFocusAreas(focusAreas);
+            Log.w(TAG, "focusAreas-rect:" +temparea.rect);
+            Log.w(TAG, "focusAreas-weigt:" +temparea.weight);
         } else {
             Log.i(TAG, "focus areas not supported");
         }
         if (params.getMaxNumMeteringAreas() > 0) {
             List<Camera.Area> meteringAreas = new ArrayList<>();
-            meteringAreas.add(new Camera.Area(meteringRect, 800));
+//            Camera.Area temparea = new Camera.Area(meteringRect, 800);
+            meteringAreas.add(temparea);
             params.setMeteringAreas(meteringAreas);
+            Log.w(TAG, "meteringAreas-rect:" +temparea.rect);
+            Log.w(TAG, "meteringAreas-weigt:" +temparea.weight);
         } else {
             Log.i(TAG, "metering areas not supported");
         }
@@ -390,7 +418,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     Boolean autoTackPicture = false;
     void autoTackPicture(){
         if(autoTackPicture) {
-           takePicture(pictureImageView);
+            takePicture(pictureImageView);
         }else{
             return;
         }
